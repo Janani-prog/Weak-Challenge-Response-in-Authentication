@@ -1,10 +1,10 @@
-# 🔐 Weak Challenge-Response Authentication Simulator
+# Weak Challenge-Response Authentication Simulator
 
 A comprehensive security simulation tool demonstrating precomputation attacks on weak challenge-response authentication systems, with prevention mechanisms and live graph analysis.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 1. [Overview](#overview)
 2. [Mathematical Proof](#mathematical-proof)
@@ -250,7 +250,7 @@ python challenge_auth_simulator.py
 
 1. Keep the same generator selected
 2. Set test count to **25**
-3. Click **💥 Run Attack**
+3. Click **Run Attack**
 4. Watch the log: red entries = attack succeeded (≥90% expected)
 5. Check the **Results Table** tab for per-test detail
 
@@ -262,14 +262,14 @@ python challenge_auth_simulator.py
 
 #### Step 4 — Show Graphs
 
-1. Click **📊 Show All Graphs**
+1. Click **Show All Graphs**
 2. Review all 6 graphs in the Graphs tab
 
 #### Step 5 — Full Automated Suite
 
-1. Click **🔄 Run Full Suite (All Generators + Preventions)**
+1. Click **Run Full Suite (All Generators + Preventions)**
 2. This runs all 4 attack types + all 4 prevention types automatically
-3. Then click **📊 Show All Graphs** for comprehensive comparison
+3. Then click **Show All Graphs** for comprehensive comparison
 
 ---
 
@@ -277,12 +277,12 @@ python challenge_auth_simulator.py
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  🔐  Challenge-Response Auth Simulator                              │
+│  Challenge-Response Auth Simulator                              │
 │  Precomputation Attack Demo | HMAC-SHA256 | 25 Test Cases          │
 ├─────────────────────┬───────────────────────────────────────────────┤
 │  CONTROLS           │  GRAPHS / MATH PROOF / RESULTS TABLE          │
 │  ─────────────────  │  ─────────────────────────────────────────    │
-│  Weak Generator:    │  [📊 Graphs Tab]                              │
+│  Weak Generator:    │  [Graphs Tab]                              │
 │  [Counter-based ▼]  │    Graph 1: Before vs After Success Rate      │
 │                     │    Graph 2: Time vs Challenge Size             │
 │  Prevention:        │    Graph 3: CIA Rate Before/After             │
@@ -290,11 +290,11 @@ python challenge_auth_simulator.py
 │                     │    Graph 5: Prevention Effectiveness           │
 │  Test Cases: [25]   │    Graph 6: Security Improvement %            │
 │                     │                                                │
-│  [⚙ Generate]       │  [📐 Math Proof Tab]                          │
-│  [💥 Run Attack]    │    Formal proofs, complexity analysis,         │
-│  [🛡 Prevention]    │    birthday bounds, security definitions       │
-│  [📊 Graphs]        │                                                │
-│  [🔄 Full Suite]    │  [📋 Results Table Tab]                        │
+│  [⚙ Generate]       │  [Math Proof Tab]                          │
+│  [Run Attack]    │    Formal proofs, complexity analysis,         │
+│  [Prevention]    │    birthday bounds, security definitions       │
+│  [Graphs]        │                                                │
+│  [Full Suite]    │  [Results Table Tab]                        │
 │                     │    Per-test: challenge, response,             │
 │  STATUS BAR         │    attacked response, success, latency        │
 │  [Progress Bar]     │                                                │
@@ -323,29 +323,44 @@ python challenge_auth_simulator.py
 
 Shows attack success rate (%) for each weak generator (red bars) vs each prevention mechanism (green bars). The 90% threshold line marks the minimum required attack success before prevention.
 
-**Expected results:**
-- Weak generators: 90–100% attack success
-- Prevention mechanisms: 0% attack success
+After the Full Suite completes, the log displays a clear final verdict:
 
-### Graph 2: Auth Time vs Challenge Size (bits)
+```
+════════════════════════════════════════════════════
+  === FINAL RESULT ===
+════════════════════════════════════════════════════
+  Weak schemes  → ~100% attack success  [VULNERABLE]
+  Prevention    →    0% attack success  [SECURE]
+════════════════════════════════════════════════════
 
-Shows how HMAC computation time scales with challenge size (8 to 256 bits). Demonstrates that security doesn't come at a significant performance cost — 256-bit challenges add only microseconds.
+  Success Rate = (Successful / Total) × 100
+  Before fix:  ≥ 90%  (requirement: ≥90%)  ✓
+  After fix:     0%   (requirement: 0%)    ✓
+```
+
+### Graph 2: Precomputation Attack Cost vs Challenge Space Size (Parameter Impact)
+
+Shows how the cost of building a precomputation table grows **exponentially** with the number of bits in the challenge. This is the core parameter impact graph — it directly answers why small challenge spaces are the vulnerability.
+
+| Challenge Size | Space | Precompute Time | Verdict |
+|---|---|---|---|
+| 8-bit | 256 entries | ~0.6 ms | Trivially broken |
+| 10-bit | 1,024 entries | ~2 ms | Trivially broken |
+| 12-bit | 4,096 entries | ~9 ms | Trivially broken |
+| 16-bit | 65,536 entries | ~170 ms | Easily broken |
+| 20-bit | ~1M entries | ~3 sec | Costly but feasible |
+| 24-bit | ~16M entries | ~43 sec | Increasingly hard |
+| **256-bit** | **2²⁵⁶ entries** | **> age of universe** | **Secure** |
+
+Red bars = attacker can feasibly precompute. Green = attacker cannot.
 
 ### Graph 3: CIA Rate — Before vs After Prevention
 
-Grouped bar chart showing **Confidentiality**, **Integrity**, and **Authentication** rates before (red) and after (green) applying prevention. All three CIA pillars improve to ~100% after prevention.
+Grouped bar chart showing **Confidentiality**, **Integrity**, and **Authentication** rates before (red) and after (green) applying prevention. All three CIA pillars collapse to ~0% security under weak challenges, and recover to ~100% after prevention.
 
 ### Graph 4: Attack vs Prevention Latency Overhead
 
-Compares average latency (ms) across all attack and prevention scenarios. Shows that prevention mechanisms have slightly higher latency due to cryptographic operations but remain well within acceptable bounds.
-
-### Graph 5: Prevention Effectiveness Comparison
-
-Horizontal bar chart comparing all prevention mechanisms by effectiveness percentage (100% - attack_success_rate). All secure mechanisms should show ~100%.
-
-### Graph 6: Security Improvement vs Weak Baseline
-
-Shows how many percentage points each prevention mechanism improves security over the weak baseline. For a 95% weak attack rate with 0% post-prevention rate, improvement = 95%.
+Compares average latency (ms) across all attack and prevention scenarios. Shows that prevention mechanisms have slightly higher latency due to cryptographic operations, but remain negligible in practical terms (sub-millisecond).
 
 ---
 
@@ -425,20 +440,3 @@ Nonce+replay       |    25    |      0.0%
 ├── challenge_auth_simulator.py    # Main application
 └── README.md                      # This file
 ```
-
----
-
-## Security Notes
-
-> This simulator is for **educational purposes only**. The secret key is hardcoded for demonstration. In production:
-> - Use environment variables or secure key stores for secrets
-> - Use CSPRNG (`secrets` module) for all challenge generation
-> - Implement server-side nonce tracking with TTL
-> - Always use HMAC with constant-time comparison (`hmac.compare_digest`)
-> - Consider challenge size of at least 128 bits; 256 bits recommended
-
----
-
-## License
-
-Educational use. No warranty expressed or implied.
